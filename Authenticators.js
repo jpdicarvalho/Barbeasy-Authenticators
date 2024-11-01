@@ -81,32 +81,33 @@ whatsappClient.on("qr", (qr) => console.log(qr));
 //Show status conection
 whatsappClient.on("ready", () => console.log("Whatsapp ativo..."))
 
-//Function to receive message
-whatsappClient.on("message", async (msg) =>{
-  try{
-    if(msg.from != 'status@broadcast'){
-      const contact = await msg.getContact()
-      console.log(contact)
-    }
-  }catch (error) {
-    console.log(error)
-  }
-})
-
 whatsappClient.initialize();
 
+//Route to send mensagem for user's whatsApp
 app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
-  console.log(req.body)
+  const phoneNumberToSendMessage = req.body.phoneNumberToSendMessage;
+  const email = req.body.email;
+
 
   const verificationCode = generateVerificationCode()
   const message = `Seu código de verificação é ${verificationCode}. Não compartilhe-o com niguém.`;
-  whatsappClient.sendMessage(req.body.phoneNumber, message)
-  .then(() =>{
-    res.status(200).send('Código de autenticação enviado.')
-  })
-  .catch((err) =>{
-    console.error('Erro ao enviar código de autenticação:', err);
-    res.status(500).send('Erro ao enviar código de autenticação.');
+
+  const sql = 'INSERT INTO user (`isVerified`) VALUES (?) WHERE email = ?';
+  db.query(sql, [verificationCode, email], (err, resul) =>{
+    if(err){
+      console.error('Erro ao salvar código de autenticação:', err);
+      return res.status(500).send('Erro ao salvar código de autenticação.');
+    }
+    if(resul){
+      whatsappClient.sendMessage(phoneNumberToSendMessage, message)
+      .then(() =>{
+        res.status(200).send('Código de autenticação enviado.')
+      })
+      .catch((err) =>{
+        console.error('Erro ao enviar código de autenticação:', err);
+        res.status(500).send('Erro ao enviar código de autenticação.');
+      })
+    }
   })
 })
 
