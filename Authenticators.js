@@ -86,7 +86,6 @@ whatsappClient.initialize();
 //Route to send mensagem for user's whatsApp
 app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
   const {phoneNumberToSendMessage, email} = req.body;
-console.log(phoneNumberToSendMessage, email)
 
   const verificationCode = generateVerificationCode()
   const message = `Seu código de verificação é ${verificationCode}. Não compartilhe-o com niguém.`;
