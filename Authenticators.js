@@ -92,7 +92,7 @@ app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
   const verificationCode = generateVerificationCode()
   const message = `Seu código de verificação é ${verificationCode}. Não compartilhe-o com niguém.`;
 
-  const sql = 'INSERT INTO user (`isVerified`) VALUES (?) WHERE email = ?';
+  const sql = 'UPDATE user SET isVerified = ? WHERE email = ?';
   db.query(sql, [verificationCode, email], (err, resul) =>{
     if(err){
       console.error('Erro ao salvar código de autenticação:', err);
