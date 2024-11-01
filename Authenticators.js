@@ -93,7 +93,7 @@ whatsappClient.on("message", async (msg) =>{
   }
 })
 
-//whatsappClient.initialize();
+whatsappClient.initialize();
 
 app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
 
