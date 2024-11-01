@@ -99,7 +99,7 @@ app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
 
   const verificationCode = generateVerificationCode()
   const message = `Seu código de verificação é ${verificationCode}. Não compartilhe-o com niguém.`;
-
+  console.log(req.body.phoneNumber)
   whatsappClient.sendMessage(req.body.phoneNumber, message)
   .then(() =>{
     res.status(200).send('Código de autenticação enviado.')
