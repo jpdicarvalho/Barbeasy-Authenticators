@@ -109,6 +109,33 @@ app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
   })
 })
 
+//Route to resend mensagem for user's whatsApp
+app.post("/api/v1/resendCodeWhatsapp", (req, res) =>{
+  const {phoneNumberToSendMessage, phoneNumberToSotorage, email} = req.body;
+
+  const verificationCode = generateVerificationCode()
+  const message = `Seu código de verificação é ${verificationCode}. Não compartilhe-o com niguém.`;
+
+  const sql = 'UPDATE user SET celular = ?, isVerified = ? WHERE email = ?';
+  db.query(sql, [phoneNumberToSotorage, verificationCode, email], (err, resul) =>{
+    if(err){
+      console.error('Erro ao atualizar o número e ao salvar o código de autenticação:', err);
+      return res.status(500).send('Erro ao atualizar o número e ao salvar o código de autenticação.');
+    }
+    if(resul){
+      whatsappClient.sendMessage(phoneNumberToSendMessage, message)
+      .then(() =>{
+        res.status(200).send('Código de autenticação reenviado.')
+      })
+      .catch((err) =>{
+        console.error('Erro ao reenviar código de autenticação:', err);
+        res.status(500).send('Erro ao reenviar código de autenticação.');
+      })
+    }
+  })
+})
+
+
 app.listen(PORT, () => {
     console.log(`Servidor rodando...`);
 })
