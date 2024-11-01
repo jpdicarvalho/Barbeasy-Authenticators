@@ -93,7 +93,7 @@ whatsappClient.on("message", async (msg) =>{
   }
 })
 
-whatsappClient.initialize();
+//whatsappClient.initialize();
 
 app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
 
@@ -111,5 +111,5 @@ app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
 })
 
 app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
+    console.log(`Servidor rodando...`);
 })
