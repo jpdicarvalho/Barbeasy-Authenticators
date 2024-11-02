@@ -139,7 +139,7 @@ app.post("/api/v1/resendCodeWhatsapp", (req, res) =>{
 app.put("/api/v1/verifyUserCode-WhatsApp", (req, res) =>{
   const {phoneNumber, email, code} = req.body;
 
-  const sql='UPDATE user SET isVerifield = ? WHERE email = ? AND celular = ? AND isVerifield = ?'
+  const sql='UPDATE user SET isVerified = ? WHERE email = ? AND celular = ? AND isVerified = ?'
   db.query(sql, ['true', email, phoneNumber, code], (err, resu) =>{
     if(err){
       console.error('Erro ao verificar código de autenticação do usuário:', err);
@@ -155,7 +155,6 @@ app.put("/api/v1/verifyUserCode-WhatsApp", (req, res) =>{
 //Route to get user's data for Auth
 app.get("/api/v1/dataToAuth/:email", (req, res) =>{
   const email = req.params.email;
-  console.log(email)
 
   const sql = 'SELECT celular FROM user WHERE email = ?';
   db.query(sql, [email], (err, resu) =>{
