@@ -152,6 +152,23 @@ app.put("/api/v1/verifyUserCode-WhatsApp", (req, res) =>{
   })
 })
 
+//Route to get user's data for Auth
+app.get("/api/v1/dataToAuth/:email", (req, res) =>{
+  const email = req.params.email;
+  console.log(email)
+
+  const sql = 'SELECT celular FROM user WHERE email = ?';
+  db.query(sql, [email], (err, resu) =>{
+    if(err){
+      console.error('Erro ao buscar o celular do usuário:', err);
+      return res.status(500).send('Erro ao buscar o celular do usuário.');
+    }
+    if(resu){
+      return res.status(201).json({phone: resu})
+    }
+  })
+})
+
 app.listen(PORT, () => {
     console.log(`Servidor rodando...`);
 })
