@@ -146,6 +146,7 @@ app.put("/api/v1/verifyUserCode-WhatsApp", (req, res) =>{
       return res.status(500).send('Erro ao verificar código de autenticação do usuário.');
     }
     if(resu){
+      console.log(resu)
       return res.status(201).send('Conta ativada com sucesso.')
     }
   })
