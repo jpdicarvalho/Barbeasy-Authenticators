@@ -56,7 +56,7 @@ if (error) {
 }
 });
 
-//===================== Whatsapp API =======================
+//===================== Whatsapp Auth =======================
 
 // Function to generate a code of 8 digt
 const generateVerificationCode = () => {
@@ -135,6 +135,21 @@ app.post("/api/v1/resendCodeWhatsapp", (req, res) =>{
   })
 })
 
+//Route to verify if code send from user is valided
+app.put("/api/v1/verifyUserCode-WhatsApp", (req, res) =>{
+  const {phoneNumber, email, code} = req.body;
+
+  const sql='UPDATE user SET isVerifield = ? WHERE email = ? AND celular = ? AND isVerifield = ?'
+  db.query(sql, ['true', email, phoneNumber, code], (err, resu) =>{
+    if(err){
+      console.error('Erro ao verificar código de autenticação do usuário:', err);
+      return res.status(500).send('Erro ao verificar código de autenticação do usuário.');
+    }
+    if(resu){
+      return res.status(201).send('Conta ativada com sucesso.')
+    }
+  })
+})
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando...`);
