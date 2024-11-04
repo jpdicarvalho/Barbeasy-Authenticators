@@ -277,7 +277,7 @@ app.put("/api/v1/sendPasswordToEmail", (req, res) =>{
 
   const newPassword = generatePassword()
   
-  const sql='UPDATE user SET senha = ? WHERE email = ? AND phoneNumber = ?'
+  const sql='UPDATE user SET senha = ? WHERE email = ? AND celular = ?'
   db.query(sql, [newPassword, email, phoneNumber], (err, resu) =>{
     if(err){
       console.error('Erro ao salvar a nova senha do usuário:', err);
