@@ -174,7 +174,7 @@ app.put("/api/v1/verifyUserCode-WhatsApp", (req, res) =>{
       return res.status(201).send('Conta ativada com sucesso.')
     }
     if(resu.affectedRows === 0){
-      return res.status(204).send('Conta ativada com sucesso.')
+      return res.status(204).send('Código de autenticação incorreto.')
     }
   })
 })
@@ -239,6 +239,24 @@ app.put("/api/v1/sendCodeEmail", (req, res) =>{
   })
 })
 
+//Route to verify if code send from user is valided
+app.put("/api/v1/verifyUserCode-Email", (req, res) =>{
+  const {email, code} = req.body;
+
+  const sql='UPDATE user SET isVerified = ? WHERE email = ? AND isVerified = ?'
+  db.query(sql, ['true', email, code], (err, resu) =>{
+    if(err){
+      console.error('Erro ao verificar código de autenticação do usuário - Email:', err);
+      return res.status(500).send('Erro ao verificar código de autenticação do usuário - Email.');
+    }
+    if(resu.affectedRows === 1){
+      return res.status(201).send('Conta ativada com sucesso.')
+    }
+    if(resu.affectedRows === 0){
+      return res.status(204).send('Código de autenticação incorreto.')
+    }
+  })
+})
 app.listen(PORT, () => {
     console.log(`Servidor rodando...`);
 })
