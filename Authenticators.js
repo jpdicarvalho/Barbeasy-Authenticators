@@ -86,6 +86,20 @@ db.query('SELECT name FROM user', (err, resu) => {
 const generateVerificationCode = () => {
   return Math.floor(10000 + Math.random() * 90000);
 };
+
+function generatePassword() {
+  // Definindo os caracteres permitidos
+  const allowedChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@.#%';
+  let password = '';
+
+  // Gerando uma senha de 8 caracteres
+  for (let i = 0; i < 8; i++) {
+    const randomIndex = Math.floor(Math.random() * allowedChars.length);
+    password += allowedChars[randomIndex];
+  }
+
+  return password;
+}
 //===================== Whatsapp Auth =======================
 
 //Export pkg from whatsapp-web.js
@@ -206,8 +220,7 @@ const sendEmail = async (email, verificationCode) => {
       subject: 'Verificação de E-mail para Ativação de Conta',
       html: `<p>Seu código de verificação é <strong>${verificationCode}</strong>. Não compartilhe-o com niguém.</p>`,
     });
-    console.log('E-mail enviado com sucesso:', response);
-    return response; // Retorne a resposta se precisar manipular o resultado
+    return // Retorne a resposta se precisar manipular o resultado
   } catch (error) {
     console.error('Erro ao enviar o e-mail:', error);
     throw error; // Repropaga o erro para ser tratado externamente, se necessário
@@ -229,11 +242,11 @@ app.put("/api/v1/sendCodeEmail", (req, res) =>{
     if(resul){
       sendEmail(email, verificationCode)
       .then(() =>{
-        res.status(200).send('Código de autenticação enviado.')
+        return res.status(200).send('Código de autenticação enviado.')
       })
       .catch((err) =>{
         console.error('Erro ao enviar código de autenticação - Email:', err);
-        res.status(500).send('Erro ao enviar código de autenticação.');
+        return res.status(500).send('Erro ao enviar código de autenticação.');
       })
     }
   })
@@ -257,6 +270,25 @@ app.put("/api/v1/verifyUserCode-Email", (req, res) =>{
     }
   })
 })
+
+//Route to send a new password to user by email
+app.put("/api/v1/sendPasswordToEmail", (req, res) =>{
+  const {email, phoneNumber} = req.body;
+
+  const newPassword = generatePassword()
+  
+  const sql='UPDATE user SET senha = ? WHERE email = ? AND phoneNumber = ?'
+  db.query(sql, [newPassword, email, phoneNumber], (err, resu) =>{
+    if(err){
+      console.error('Erro ao salvar a nova senha do usuário:', err);
+      return res.status(500).send('Erro ao salvar a nova senha do usuário - Email.');
+    }
+    if(resu.affectedRows === 1){
+      return res.status(201).send('Nova senha salva..')
+    }
+  })
+})
+
 app.listen(PORT, () => {
     console.log(`Servidor rodando...`);
 })
