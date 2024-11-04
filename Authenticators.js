@@ -211,14 +211,30 @@ app.get("/api/v1/dataToAuth/:email", (req, res) =>{
 //====================== Settings to send emails ========================
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-//Function to send email
-const sendEmail = async (email, verificationCode) => {
+//Function to send a code verification to email
+const sendCodeAutenticationToEmail = async (email, verificationCode) => {
   try {
     const response = await resend.emails.send({
       from: 'Barbeasy Segurança <no-reply@barbeasy.com.br>', // Ajuste na formatação do e-mail
       to: email,
       subject: 'Verificação de E-mail para Ativação de Conta',
       html: `<p>Seu código de verificação é <strong>${verificationCode}</strong>. Não compartilhe-o com niguém.</p>`,
+    });
+    return // Retorne a resposta se precisar manipular o resultado
+  } catch (error) {
+    console.error('Erro ao enviar o e-mail:', error);
+    throw error; // Repropaga o erro para ser tratado externamente, se necessário
+  }
+};
+
+//Function to send email
+const sendNewPasswordToEmail = async (email, newPassword) => {
+  try {
+    const response = await resend.emails.send({
+      from: 'Barbeasy Segurança <no-reply@barbeasy.com.br>', // Ajuste na formatação do e-mail
+      to: email,
+      subject: 'Nova Senha de Acesso',
+      html: `<p>Sua nova senha de acesso é <strong>${newPassword}</strong>. Não compartilhe-a com niguém.</p>`,
     });
     return // Retorne a resposta se precisar manipular o resultado
   } catch (error) {
@@ -240,7 +256,7 @@ app.put("/api/v1/sendCodeEmail", (req, res) =>{
       return res.status(500).send('Erro ao salvar código de autenticação - Email.');
     }
     if(resul){
-      sendEmail(email, verificationCode)
+      sendCodeAutenticationToEmail(email, verificationCode)
       .then(() =>{
         return res.status(200).send('Código de autenticação enviado.')
       })
@@ -284,7 +300,14 @@ app.put("/api/v1/sendPasswordToEmail", (req, res) =>{
       return res.status(500).send('Erro ao salvar a nova senha do usuário - Email.');
     }
     if(resu.affectedRows === 1){
-      return res.status(201).send('Nova senha salva..')
+      sendNewPasswordToEmail(email, newPassword)
+      .then(() =>{
+        return res.status(201).send('Nova senha salva..')
+      })
+      .catch((err) =>{
+        console.error('Erro ao enviar a nova senha - Email:', err);
+        return res.status(500).send('Erro ao enviar código de autenticação.');
+      })
     }
   })
 })
