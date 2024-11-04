@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import mysql from "mysql2";
 
 import pkg from 'whatsapp-web.js'
+import { Resend } from 'resend';
 
 import morgan from 'morgan';
 import winston from 'winston';
@@ -56,12 +57,36 @@ if (error) {
 }
 });
 
-//===================== Whatsapp Auth =======================
+//==================== cron.schedule ===========================
+// Agendamento de requisição a cada 3 horas
+cron.schedule("0 */2 * * *", () => {
+  //send request to route '/api/v1/ping-db'
+  axios.post("https://barbeasy-authenticators.up.railway.app/api/v1/ping-db")
+  .then(res =>{
+    console.log(res.data)
+  }).catch(err =>{
+    console.error(err);
+  }) 
+});
 
-// Function to generate a code of 8 digt
+app.post("/api/v1/ping-db", (req, res) =>{
+db.query('SELECT name FROM user', (err, resu) => {
+  if (err) {
+      console.error('Erro ao consultar DB:', err);
+      return res.status(500).send('Erro ao manter o banco ativo');
+  }
+  if(resu){
+    console.log(resu.length);
+    return res.send('Banco de dados ativo...');
+  }
+  });
+})
+
+// Function to generate a code of 5 digt
 const generateVerificationCode = () => {
-    return Math.floor(10000 + Math.random() * 90000);
+  return Math.floor(10000 + Math.random() * 90000);
 };
+//===================== Whatsapp Auth =======================
 
 //Export pkg from whatsapp-web.js
 const { Client, LocalAuth } = pkg;
@@ -166,6 +191,50 @@ app.get("/api/v1/dataToAuth/:email", (req, res) =>{
     }
     if(resu){
       return res.status(201).json({phone: resu})
+    }
+  })
+})
+//====================== Settings to send emails ========================
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+//Function to send email
+const sendEmail = async (email, verificationCode) => {
+  try {
+    const response = await resend.emails.send({
+      from: 'Barbeasy Segurança <no-reply@barbeasy.com.br>', // Ajuste na formatação do e-mail
+      to: email,
+      subject: 'Verificação de E-mail para Ativação de Conta',
+      html: `<p>Seu código de verificação é <strong>${verificationCode}</strong>. Não compartilhe-o com niguém.</p>`,
+    });
+    console.log('E-mail enviado com sucesso:', response);
+    return response; // Retorne a resposta se precisar manipular o resultado
+  } catch (error) {
+    console.error('Erro ao enviar o e-mail:', error);
+    throw error; // Repropaga o erro para ser tratado externamente, se necessário
+  }
+};
+
+//Route to send mensagem for user's whatsApp
+app.put("/api/v1/sendCodeEmail", (req, res) =>{
+  const {email} = req.body;
+
+  const verificationCode = generateVerificationCode()
+
+  const sql = 'UPDATE user SET isVerified = ? WHERE email = ?';
+  db.query(sql, [verificationCode, email], (err, resul) =>{
+    if(err){
+      console.error('Erro ao salvar código de autenticação - Email:', err);
+      return res.status(500).send('Erro ao salvar código de autenticação - Email.');
+    }
+    if(resul){
+      sendEmail(email, verificationCode)
+      .then(() =>{
+        res.status(200).send('Código de autenticação enviado.')
+      })
+      .catch((err) =>{
+        console.error('Erro ao enviar código de autenticação - Email:', err);
+        res.status(500).send('Erro ao enviar código de autenticação.');
+      })
     }
   })
 })
