@@ -208,6 +208,32 @@ app.get("/api/v1/dataToAuth/:email", (req, res) =>{
     }
   })
 })
+
+//Route to send a new password to user by WhatsApp
+app.put("/api/v1/resetPasswordByWhatsApp", (req, res) =>{
+  const { phoneNumberToSendPassword, phoneNumberToFindUser } = req.body;
+
+  const newPassword = generatePassword()
+  
+  const sql='UPDATE user SET senha = ? WHERE celular = ?'
+  db.query(sql, [newPassword, phoneNumberToFindUser], (err, resu) =>{
+    if(err){
+      console.error('Erro ao salvar a nova senha do usuário:', err);
+      return res.status(500).send('Erro ao salvar a nova senha do usuário - WhatsApp.');
+    }
+    if(resu.affectedRows === 1){
+      const message = `Sua nova senha de acesso é ${newPassword}. Não compartilhe-a com niguém.`;
+      whatsappClient.sendMessage(phoneNumberToSendPassword, message)
+      .then(() =>{
+        return res.status(201).send('Nova senha salva..')
+      })
+      .catch((err) =>{
+        console.error('Erro ao enviar a nova senha - WhatsApp:', err);
+        return res.status(500).send('Erro ao enviar código de autenticação.');
+      })
+    }
+  })
+})
 //====================== Settings to send emails ========================
 const resend = new Resend(process.env.RESEND_API_KEY);
 
