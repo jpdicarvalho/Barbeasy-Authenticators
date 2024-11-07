@@ -212,11 +212,20 @@ app.put("/api/v1/verifyUserCode-WhatsApp", (req, res) =>{
 })
 
 //Route to get user's data for Auth
-app.get("/api/v1/dataToAuth/:email", (req, res) =>{
+app.get("/api/v1/dataToAuth/:email/:phoneNumber/:type", (req, res) =>{
   const email = req.params.email;
+  const phoneNumber = req.params.phoneNumber;
+  const type = req.params.type;
 
-  const sql = 'SELECT celular FROM user WHERE email = ?';
-  db.query(sql, [email], (err, resu) =>{
+  let sql = '';
+
+  if(type === 'barbearia'){
+    sql = 'SELECT celular FROM barbearia WHERE email = ? AND celular = ?'
+  } else if(type === 'client'){
+    sql = 'SELECT celular FROM user WHERE email = ? AND celular = ?'
+  }
+
+  db.query(sql, [email, phoneNumber], (err, resu) =>{
     if(err){
       console.error('Erro ao buscar o celular do usuário:', err);
       return res.status(500).send('Erro ao buscar o celular do usuário.');
