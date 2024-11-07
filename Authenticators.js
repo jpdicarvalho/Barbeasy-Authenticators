@@ -123,7 +123,7 @@ whatsappClient.on("ready", () => console.log("Whatsapp ativo..."))
 whatsappClient.initialize();
 
 //Route to send mensagem for user's whatsApp
-app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
+app.put("/api/v1/sendCodeWhatsapp", (req, res) =>{
   const phoneNumberToSendMessage = req.body.phoneNumberToSendMessage;
   const email = req.body.email;
   const phoneNumberToFindUser = req.body.phoneNumberToFindUser;
@@ -148,15 +148,18 @@ app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
       console.error('Erro ao salvar código de autenticação:', err);
       return res.status(500).send('Erro ao salvar código de autenticação.');
     }
-    if(resul){
+    if(resul.affectedRows === 1){
       whatsappClient.sendMessage(phoneNumberToSendMessage, message)
       .then(() =>{
-        res.status(200).send('Código de autenticação enviado.')
+        return res.status(200).send('Código de autenticação enviado.')
       })
       .catch((err) =>{
         console.error('Erro ao enviar código de autenticação:', err);
-        res.status(500).send('Erro ao enviar código de autenticação.');
+        return res.status(500).send('Erro ao enviar código de autenticação.');
       })
+    }
+    if(resul.affectedRows === 0){
+      return res.status(204).send('Usuário não encontrado.')
     }
   })
 })
