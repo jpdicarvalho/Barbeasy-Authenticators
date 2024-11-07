@@ -124,13 +124,26 @@ whatsappClient.initialize();
 
 //Route to send mensagem for user's whatsApp
 app.post("/api/v1/sendCodeWhatsapp", (req, res) =>{
-  const {phoneNumberToSendMessage, email} = req.body;
+  const phoneNumberToSendMessage = req.body.phoneNumberToSendMessage;
+  const email = req.body.email;
+  const phoneNumberToFindUser = req.body.phoneNumberToFindUser;
 
   const verificationCode = generateVerificationCode()
   const message = `Seu código de verificação é ${verificationCode}. Não compartilhe-o com niguém.`;
 
-  const sql = 'UPDATE user SET isVerified = ? WHERE email = ?';
-  db.query(sql, [verificationCode, email], (err, resul) =>{
+  let sql = '';
+  let params = '';
+  
+  if(email){
+    sql = 'UPDATE user SET isVerified = ? WHERE email = ?';
+    params = email
+  }
+  if(phoneNumberToFindUser){
+    sql = 'UPDATE user SET isVerified = ? WHERE celular = ?';
+    params = phoneNumberToFindUser
+  }
+  
+  db.query(sql, [verificationCode, params], (err, resul) =>{
     if(err){
       console.error('Erro ao salvar código de autenticação:', err);
       return res.status(500).send('Erro ao salvar código de autenticação.');
@@ -214,22 +227,23 @@ app.put("/api/v1/resetPasswordByWhatsApp", (req, res) =>{
   const { phoneNumberToSendPassword, phoneNumberToFindUser } = req.body;
 
   const newPassword = generatePassword()
+  const verificationCode = generateVerificationCode()
   
-  const sql='UPDATE user SET senha = ? WHERE celular = ?'
-  db.query(sql, [newPassword, phoneNumberToFindUser], (err, resu) =>{
+  const sql='UPDATE user SET isVerified = ? WHERE celular = ?'
+  db.query(sql, [verificationCode, phoneNumberToFindUser], (err, resu) =>{
     if(err){
-      console.error('Erro ao salvar a nova senha do usuário:', err);
-      return res.status(500).send('Erro ao salvar a nova senha do usuário - WhatsApp.');
+      console.error('Erro ao salvar o código de verificação de redefinição de senha:', err);
+      return res.status(500).send('Erro ao salvar o código de verificação de redefinição de senha - WhatsApp.');
     }
     if(resu.affectedRows === 1){
-      const message = `Sua nova senha de acesso é ${newPassword}. Não compartilhe-a com niguém.`;
+      const message = `Seu código de verificação é ${verificationCode}. Não compartilhe-o com niguém.`;
       whatsappClient.sendMessage(phoneNumberToSendPassword, message)
       .then(() =>{
-        return res.status(201).send('Nova senha salva..')
+        return res.status(201).send('Código de redefinição de senha enviado..')
       })
       .catch((err) =>{
-        console.error('Erro ao enviar a nova senha - WhatsApp:', err);
-        return res.status(500).send('Erro ao enviar código de autenticação.');
+        console.error('Erro ao enviar código de redefinição de senha - WhatsApp:', err);
+        return res.status(500).send('Erro ao enviar código de redefinição de senha - WhatsApp.');
       })
     }
     if(resu.affectedRows === 0){
