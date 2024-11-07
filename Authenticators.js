@@ -272,7 +272,7 @@ app.put("/api/v1/sendCodeEmail", (req, res) =>{
       console.error('Erro ao salvar código de autenticação - Email:', err);
       return res.status(500).send('Erro ao salvar código de autenticação - Email.');
     }
-    if(resul){
+    if(resul.affectedRows === 1){
       sendCodeAutenticationToEmail(email, verificationCode)
       .then(() =>{
         return res.status(200).send('Código de autenticação enviado.')
@@ -281,6 +281,9 @@ app.put("/api/v1/sendCodeEmail", (req, res) =>{
         console.error('Erro ao enviar código de autenticação - Email:', err);
         return res.status(500).send('Erro ao enviar código de autenticação.');
       })
+    }
+    if(resul.affectedRows === 0){
+      return res.status(204).send('Usuário não encontrado.')
     }
   })
 })
@@ -337,14 +340,14 @@ app.put("/api/v1/resetPassword", (req, res) => {
   
   let sql = '';
   if (methodSendCode.type === 'email') {
-      sql = 'UPDATE user SET senha = ? WHERE email = ? AND isVerified = ?';
+      sql = 'UPDATE user SET senha = ?, isVerified = ? WHERE email = ? AND isVerified = ?';
   } else if (methodSendCode.type === 'WhatsApp') {
-      sql = 'UPDATE user SET senha = ? WHERE celular = ? AND isVerified = ?';
+      sql = 'UPDATE user SET senha = ?, isVerified = ? WHERE celular = ? AND isVerified = ?';
   } else {
       return res.status(400).send('Tipo de método inválido.');
   }
 
-  db.query(sql, [newPassword, valueToFindUser, code], (err, resu) => {
+  db.query(sql, [newPassword, 'true', valueToFindUser, code], (err, resu) => {
       if (err) {
           console.error('Erro ao atualizar a senha:', err);
           return res.status(500).send('Erro ao salvar o código de verificação de redefinição de senha.');
@@ -373,6 +376,7 @@ app.put("/api/v1/resetPassword", (req, res) => {
       }
   });
 });
+
 app.listen(PORT, () => {
     console.log(`Servidor rodando...`);
 })
