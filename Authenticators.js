@@ -134,10 +134,12 @@ app.put("/api/v1/sendCodeWhatsapp", (req, res) =>{
   let sql = '';
   let params = '';
   
+  //Monta a query para as requisições de Ativação e/ou recuperação de conta
   if(email){
     sql = 'UPDATE user SET isVerified = ? WHERE email = ?';
     params = email
   }
+  //Monta a query para as requisições de Redefinição de senha
   if(phoneNumberToFindUser){
     sql = 'UPDATE user SET isVerified = ? WHERE celular = ?';
     params = phoneNumberToFindUser
@@ -234,7 +236,7 @@ const sendCodeAutenticationToEmail = async (email, verificationCode) => {
     const response = await resend.emails.send({
       from: 'Barbeasy Segurança <no-reply@barbeasy.com.br>', // Ajuste na formatação do e-mail
       to: email,
-      subject: 'Verificação de E-mail para Ativação de Conta',
+      subject: 'Verificação de E-mail',
       html: `<p>Seu código de verificação é <strong>${verificationCode}</strong>. Não compartilhe-o com niguém.</p>`,
     });
     return // Retorne a resposta se precisar manipular o resultado
