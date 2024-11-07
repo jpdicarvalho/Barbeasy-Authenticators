@@ -232,6 +232,9 @@ app.put("/api/v1/resetPasswordByWhatsApp", (req, res) =>{
         return res.status(500).send('Erro ao enviar código de autenticação.');
       })
     }
+    if(resu.affectedRows === 0){
+      return res.status(204).send('Usuário não encontrado.')
+    }
   })
 })
 //====================== Settings to send emails ========================
