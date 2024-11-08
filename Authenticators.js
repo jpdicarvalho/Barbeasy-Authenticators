@@ -174,12 +174,19 @@ app.put("/api/v1/sendCodeWhatsapp", (req, res) =>{
 
 //Route to resend mensagem for user's whatsApp
 app.post("/api/v1/resendCodeWhatsapp", (req, res) =>{
-  const {phoneNumberToSendMessage, phoneNumberToSotorage, email} = req.body;
+  const {phoneNumberToSendMessage, phoneNumberToSotorage, email, type} = req.body;
 
   const verificationCode = generateVerificationCode()
   const message = `Seu código de verificação é ${verificationCode}. Não compartilhe-o com niguém.`;
 
-  const sql = 'UPDATE user SET celular = ?, isVerified = ? WHERE email = ?';
+  let sql = '';
+
+  if(type === 'barbearia'){
+    sql = 'UPDATE barbearia SET celular = ?, isVerified = ? WHERE email = ?' 
+  } else if(type === 'client'){
+    sql = 'UPDATE user SET celular = ?, isVerified = ? WHERE email = ?'
+  }
+
   db.query(sql, [phoneNumberToSotorage, verificationCode, email], (err, resul) =>{
     if(err){
       console.error('Erro ao atualizar o número e ao salvar o código de autenticação:', err);
@@ -200,9 +207,16 @@ app.post("/api/v1/resendCodeWhatsapp", (req, res) =>{
 
 //Route to verify if code send from user is valided
 app.put("/api/v1/verifyUserCode-WhatsApp", (req, res) =>{
-  const {phoneNumber, email, code} = req.body;
+  const {phoneNumber, email, code, type} = req.body;
 
-  const sql='UPDATE user SET isVerified = ? WHERE email = ? AND celular = ? AND isVerified = ?'
+  let sql = '';
+
+  if(type === 'barbearia'){
+    sql = 'UPDATE barbearia SET isVerified = ? WHERE email = ? AND celular = ? AND isVerified = ?' 
+  } else if(type === 'client'){
+    sql = 'UPDATE user SET isVerified = ? WHERE email = ? AND celular = ? AND isVerified = ?'
+  }
+
   db.query(sql, ['true', email, phoneNumber, code], (err, resu) =>{
     if(err){
       console.error('Erro ao verificar código de autenticação do usuário:', err);
@@ -279,11 +293,18 @@ const sendNewPasswordToEmail = async (email, newPassword) => {
 
 //Route to send mensagem for user's whatsApp
 app.put("/api/v1/sendCodeEmail", (req, res) =>{
-  const {email} = req.body;
+  const {email, type} = req.body;
 
   const verificationCode = generateVerificationCode()
 
-  const sql = 'UPDATE user SET isVerified = ? WHERE email = ?';
+  let sql = '';
+
+  if(type === 'barbearia'){
+    sql = 'UPDATE barbearia SET isVerified = ? WHERE email = ?'
+  } else if(type === 'client'){
+    sql = 'UPDATE user SET isVerified = ? WHERE email = ?'
+  }
+
   db.query(sql, [verificationCode, email], (err, resul) =>{
     if(err){
       console.error('Erro ao salvar código de autenticação - Email:', err);
@@ -307,9 +328,16 @@ app.put("/api/v1/sendCodeEmail", (req, res) =>{
 
 //Route to verify if code send from user is valided
 app.put("/api/v1/verifyUserCode-Email", (req, res) =>{
-  const {email, code} = req.body;
+  const {email, code, type} = req.body;
 
-  const sql='UPDATE user SET isVerified = ? WHERE email = ? AND isVerified = ?'
+  let sql = '';
+
+  if(type === 'barbearia'){
+    sql = 'UPDATE barbearia SET isVerified = ? WHERE email = ? AND isVerified = ?'
+  } else if(type === 'client'){
+    sql = 'UPDATE user SET isVerified = ? WHERE email = ? AND isVerified = ?'
+  }
+
   db.query(sql, ['true', email, code], (err, resu) =>{
     if(err){
       console.error('Erro ao verificar código de autenticação do usuário - Email:', err);
@@ -326,11 +354,18 @@ app.put("/api/v1/verifyUserCode-Email", (req, res) =>{
 
 //Route to send a new password to user by email
 app.put("/api/v1/sendPasswordToEmail", (req, res) =>{
-  const {email, phoneNumber} = req.body;
+  const {email, phoneNumber, type} = req.body;
 
   const newPassword = generatePassword()
   
-  const sql='UPDATE user SET senha = ? WHERE email = ? AND celular = ?'
+  let sql = '';
+
+  if(type === 'barbearia'){
+    sql = 'UPDATE barbearia SET senha = ? WHERE email = ? AND celular = ?'
+  } else if(type === 'client'){
+    sql = 'UPDATE user SET senha = ? WHERE email = ? AND celular = ?'
+  }
+  
   db.query(sql, [newPassword, email, phoneNumber], (err, resu) =>{
     if(err){
       console.error('Erro ao salvar a nova senha do usuário:', err);
