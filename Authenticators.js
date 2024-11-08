@@ -232,17 +232,16 @@ app.put("/api/v1/verifyUserCode-WhatsApp", (req, res) =>{
 })
 
 //Route to get user's data for Auth
-app.get("/api/v1/dataToAuth/:email/:phoneNumber/:type", (req, res) =>{
+app.get("/api/v1/dataToAuth/:email/:type", (req, res) =>{
   const email = req.params.email;
-  const phoneNumber = req.params.phoneNumber;
   const type = req.params.type;
 
   let sql = '';
 
   if(type === 'barbearia'){
-    sql = 'SELECT celular FROM barbearia WHERE email = ? AND celular = ?'
+    sql = 'SELECT celular FROM barbearia WHERE email = ?'
   } else if(type === 'client'){
-    sql = 'SELECT celular FROM user WHERE email = ? AND celular = ?'
+    sql = 'SELECT celular FROM user WHERE email = ?'
   }
 
   db.query(sql, [email, phoneNumber], (err, resu) =>{
@@ -365,7 +364,7 @@ app.put("/api/v1/sendPasswordToEmail", (req, res) =>{
   } else if(type === 'client'){
     sql = 'UPDATE user SET senha = ? WHERE email = ? AND celular = ?'
   }
-  
+
   db.query(sql, [newPassword, email, phoneNumber], (err, resu) =>{
     if(err){
       console.error('Erro ao salvar a nova senha do usuário:', err);
