@@ -127,21 +127,27 @@ app.put("/api/v1/sendCodeWhatsapp", (req, res) =>{
   const phoneNumberToSendMessage = req.body.phoneNumberToSendMessage;
   const email = req.body.email;
   const phoneNumberToFindUser = req.body.phoneNumberToFindUser;
+  const type = req.body.type;
 
   const verificationCode = generateVerificationCode()
   const message = `Seu código de verificação é ${verificationCode}. Não compartilhe-o com niguém.`;
 
   let sql = '';
   let params = '';
-  
+
+  if(type === 'barbearia'){
+    sql = 'UPDATE barbearia '
+  } else if(type === 'client'){
+    sql = 'UPDATE user '
+  }
   //Monta a query para as requisições de Ativação e/ou recuperação de conta
   if(email){
-    sql = 'UPDATE user SET isVerified = ? WHERE email = ?';
+    sql = sql + 'SET isVerified = ? WHERE email = ?';
     params = email
   }
   //Monta a query para as requisições de Redefinição de senha
   if(phoneNumberToFindUser){
-    sql = 'UPDATE user SET isVerified = ? WHERE celular = ?';
+    sql = sql + 'SET isVerified = ? WHERE celular = ?';
     params = phoneNumberToFindUser
   }
   
