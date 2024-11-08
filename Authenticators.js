@@ -386,16 +386,23 @@ app.put("/api/v1/sendPasswordToEmail", (req, res) =>{
 //================= Reset password ===================
 //Route to send a new password to user by WhatsApp
 app.put("/api/v1/resetPassword", (req, res) => {
-  const { methodSendCode, valueToFindUser, code } = req.body;
+  const { methodSendCode, valueToFindUser, code, type} = req.body;
   const newPassword = generatePassword();
   
   let sql = '';
+
+  if(type === 'barbearia'){
+    sql = 'UPDATE barbearia '
+  } else if(type === 'client'){
+    sql = 'UPDATE user '
+  }
+
   if (methodSendCode.type === 'email') {
-      sql = 'UPDATE user SET senha = ?, isVerified = ? WHERE email = ? AND isVerified = ?';
+      sql = sql + 'SET senha = ?, isVerified = ? WHERE email = ? AND isVerified = ?';
   } else if (methodSendCode.type === 'WhatsApp') {
-      sql = 'UPDATE user SET senha = ?, isVerified = ? WHERE celular = ? AND isVerified = ?';
+      sql = sql + 'SET senha = ?, isVerified = ? WHERE celular = ? AND isVerified = ?';
   } else {
-      return res.status(400).send('Tipo de método inválido.');
+      return res.status(400).send('Método de envio de código inválido.');
   }
 
   db.query(sql, [newPassword, 'true', valueToFindUser, code], (err, resu) => {
