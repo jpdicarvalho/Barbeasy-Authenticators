@@ -244,7 +244,7 @@ app.get("/api/v1/dataToAuth/:email/:type", (req, res) =>{
     sql = 'SELECT celular FROM user WHERE email = ?'
   }
 
-  db.query(sql, [email, phoneNumber], (err, resu) =>{
+  db.query(sql, [email], (err, resu) =>{
     if(err){
       console.error('Erro ao buscar o celular do usuário:', err);
       return res.status(500).send('Erro ao buscar o celular do usuário.');
