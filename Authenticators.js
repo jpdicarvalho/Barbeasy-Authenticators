@@ -389,49 +389,57 @@ app.put("/api/v1/resetPassword", (req, res) => {
   const { methodSendCode, valueToFindUser, code, type} = req.body;
   const newPassword = generatePassword();
   
-  let sql = '';
+  // Criptografar a senha antes de salvar
+  bcrypt.hash(newPassword, 10, (err, newPassword_hash) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Erro ao criptografar a senha' });
+    }
 
-  if(type === 'barbearia'){
-    sql = 'UPDATE barbearia '
-  } else if(type === 'client'){
-    sql = 'UPDATE user '
-  }
+    let sql = '';
 
-  if (methodSendCode.type === 'email') {
-      sql = sql + 'SET senha = ?, isVerified = ? WHERE email = ? AND isVerified = ?';
-  } else if (methodSendCode.type === 'WhatsApp') {
-      sql = sql + 'SET senha = ?, isVerified = ? WHERE celular = ? AND isVerified = ?';
-  } else {
-      return res.status(400).send('Método de envio de código inválido.');
-  }
+    if(type === 'barbearia'){
+      sql = 'UPDATE barbearia '
+    } else if(type === 'client'){
+      sql = 'UPDATE user '
+    }
 
-  db.query(sql, [newPassword, 'true', valueToFindUser, code], (err, resu) => {
-      if (err) {
-          console.error('Erro ao atualizar a senha:', err);
-          return res.status(500).send('Erro ao salvar o código de verificação de redefinição de senha.');
-      }
-      if (resu.affectedRows === 0) {
-          return res.status(204).send('Usuário não encontrado ou código inválido.');
-      }
+    if (methodSendCode.type === 'email') {
+        sql = sql + 'SET senha = ?, isVerified = ? WHERE email = ? AND isVerified = ?';
+    } else if (methodSendCode.type === 'WhatsApp') {
+        sql = sql + 'SET senha = ?, isVerified = ? WHERE celular = ? AND isVerified = ?';
+    } else {
+        return res.status(400).send('Método de envio de código inválido.');
+    }
 
-      if (resu.affectedRows === 1) {
-        const message = `Sua nova senha de acesso é ${newPassword}. Não compartilhe-a com ninguém.`;
-        if (methodSendCode.type === 'email') {
-          sendNewPasswordToEmail(valueToFindUser, newPassword)
-              .then(() => res.status(201).send('Nova senha salva.'))
-              .catch(err => {
-                  console.error('Erro ao enviar a nova senha - Email:', err);
-                  res.status(500).send('Erro ao enviar código de autenticação.');
-              });
-        } else if (methodSendCode.type === 'WhatsApp') {
-          whatsappClient.sendMessage(methodSendCode.value, message)
-              .then(() => res.status(201).send('Código de redefinição de senha enviado.'))
-              .catch(err => {
-                  console.error('Erro ao enviar código de redefinição de senha - WhatsApp:', err);
-                  res.status(500).send('Erro ao enviar código de redefinição de senha - WhatsApp.');
-              });
-      }
-      }
+    db.query(sql, [newPassword_hash, 'true', valueToFindUser, code], (err, resu) => {
+        if (err) {
+            console.error('Erro ao atualizar a senha:', err);
+            return res.status(500).send('Erro ao salvar o código de verificação de redefinição de senha.');
+        }
+        if (resu.affectedRows === 0) {
+            return res.status(204).send('Usuário não encontrado ou código inválido.');
+        }
+
+        if (resu.affectedRows === 1) {
+          const message = `Sua nova senha de acesso é ${newPassword}. Não compartilhe-a com ninguém.`;
+          if (methodSendCode.type === 'email') {
+            sendNewPasswordToEmail(valueToFindUser, newPassword)
+                .then(() => res.status(201).send('Nova senha salva.'))
+                .catch(err => {
+                    console.error('Erro ao enviar a nova senha - Email:', err);
+                    res.status(500).send('Erro ao enviar código de autenticação.');
+                });
+          } else if (methodSendCode.type === 'WhatsApp') {
+            whatsappClient.sendMessage(methodSendCode.value, message)
+                .then(() => res.status(201).send('Código de redefinição de senha enviado.'))
+                .catch(err => {
+                    console.error('Erro ao enviar código de redefinição de senha - WhatsApp:', err);
+                    res.status(500).send('Erro ao enviar código de redefinição de senha - WhatsApp.');
+                });
+        }
+        }
+    });
   });
 });
 
