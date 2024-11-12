@@ -6,6 +6,7 @@ import mysql from "mysql2";
 
 import pkg from 'whatsapp-web.js'
 import { Resend } from 'resend';
+import bcrypt from 'bcrypt'
 
 import morgan from 'morgan';
 import winston from 'winston';
