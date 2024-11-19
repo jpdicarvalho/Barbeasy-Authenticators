@@ -358,30 +358,38 @@ app.put("/api/v1/sendPasswordToEmail", (req, res) =>{
 
   const newPassword = generatePassword()
   
-  let sql = '';
-
-  if(type === 'barbearia'){
-    sql = 'UPDATE barbearia SET senha = ? WHERE email = ? AND celular = ?'
-  } else if(type === 'client'){
-    sql = 'UPDATE user SET senha = ? WHERE email = ? AND celular = ?'
-  }
-
-  db.query(sql, [newPassword, email, phoneNumber], (err, resu) =>{
-    if(err){
-      console.error('Erro ao salvar a nova senha do usuário:', err);
-      return res.status(500).send('Erro ao salvar a nova senha do usuário - Email.');
+  // Criptografar a senha antes de salvar
+  bcrypt.hash(newPassword, 10, (err, newPassword_hash) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Erro ao criptografar a senha' });
     }
-    if(resu.affectedRows === 1){
-      sendNewPasswordToEmail(email, newPassword)
-      .then(() =>{
-        return res.status(201).send('Nova senha salva..')
-      })
-      .catch((err) =>{
-        console.error('Erro ao enviar a nova senha - Email:', err);
-        return res.status(500).send('Erro ao enviar código de autenticação.');
-      })
+
+    let sql = '';
+
+    if(type === 'barbearia'){
+      sql = 'UPDATE barbearia SET senha = ? WHERE email = ? AND celular = ?'
+    } else if(type === 'client'){
+      sql = 'UPDATE user SET senha = ? WHERE email = ? AND celular = ?'
     }
-  })
+
+    db.query(sql, [newPassword_hash, email, phoneNumber], (err, resu) =>{
+      if(err){
+        console.error('Erro ao salvar a nova senha do usuário:', err);
+        return res.status(500).send('Erro ao salvar a nova senha do usuário - Email.');
+      }
+      if(resu.affectedRows === 1){
+        sendNewPasswordToEmail(email, newPassword)
+        .then(() =>{
+          return res.status(201).send('Nova senha salva..')
+        })
+        .catch((err) =>{
+          console.error('Erro ao enviar a nova senha - Email:', err);
+          return res.status(500).send('Erro ao enviar código de autenticação.');
+        })
+      }
+    })
+    })
 })
 
 //================= Reset password ===================
