@@ -59,7 +59,7 @@ if (error) {
 });
 
 //==================== cron.schedule ===========================
-// Agendamento de requisição a cada 3 horas
+// Agendamento de requisição a cada 4 horas
 cron.schedule("0 */4 * * *", () => {
   //send request to route '/api/v1/ping-db'
   axios.post("https://barbeasy-authenticators.up.railway.app/api/v1/ping-db")
