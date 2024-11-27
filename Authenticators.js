@@ -70,6 +70,7 @@ cron.schedule("0 */4 * * *", () => {
   }) 
 });
 
+//Route to send sing
 app.post("/api/v1/ping-db", (req, res) =>{
 db.query('SELECT name FROM user', (err, resu) => {
   if (err) {
