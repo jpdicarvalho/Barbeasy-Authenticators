@@ -118,7 +118,7 @@ const whatsappClient = new Client({
 });
 
 //Generate qrcode if not autenticated
-whatsappClient.on("qr", (qr) => console.log(qr));
+//whatsappClient.on("qr", (qr) => console.log(qr));
 //Show status conection
 whatsappClient.on("ready", () => console.log("Whatsapp ativo..."))
 
